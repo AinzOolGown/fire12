@@ -36,7 +36,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
-  final CollectionReference _products = FirebaseFirestore.instance.collection('products');
+  final CollectionReference _products = FirebaseFirestore.instance.collection('posts');
 
   Future<void> _createOrUpdate([DocumentSnapshot? documentSnapshot]) async {
     String action = 'create';
