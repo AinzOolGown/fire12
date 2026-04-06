@@ -21,7 +21,7 @@ class Item {
   }
 
   // fromMap() Creates an Item object from a Map
-  factory Item.fromMap(Map<String, dynamic> map) {
+  factory Item.fromMap(Map<String, dynamic> map, String id) {
     return Item(
       id: map['id']?.toString() ?? '',
       name: map['name'] ?? '',

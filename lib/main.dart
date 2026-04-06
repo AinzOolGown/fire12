@@ -1,3 +1,5 @@
+import 'package:firebaseshop/item.dart';
+import 'package:firebaseshop/firestore_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -76,12 +78,10 @@ class _HomePageState extends State<HomePage> {
                   double price = double.parse(_priceController.text);
                   if (name.isNotEmpty) {
                     if (action == 'create') {
-                      await _products.add({"name": name, "price": price});
+                      await FirestoreManager().addItem(Item(id: '', name: name, price: price));
                     }
                     if (action == 'update') {
-                      await _products.doc(documentSnapshot!.id).update({
-                        "name": name, "price": price,
-                      });
+                      await FirestoreManager().updateItem(documentSnapshot!.id, Item(id: documentSnapshot.id, name: name, price: price));
                     }
                     _nameController.text = '';
                     _priceController.text = '';
@@ -98,7 +98,7 @@ class _HomePageState extends State<HomePage> {
 
   // TODO: Complete this function!
   Future<void> _deleteProduct(String productId) async {
-    await _products.doc(productId).delete();
+    await FirestoreManager().deleteItem(productId);
     
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('You have successfully deleted a product')),
@@ -107,6 +107,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final docs = _products.snapshots();
+
     return Scaffold(
       appBar: AppBar(title: const Text('CRUD Operations')),
       body: StreamBuilder(
@@ -116,24 +118,24 @@ class _HomePageState extends State<HomePage> {
             return ListView.builder(
               itemCount: streamSnapshot.data!.docs.length,
               itemBuilder: (context, index) {
-                final DocumentSnapshot documentSnapshot =
-                    streamSnapshot.data!.docs[index];
+                final doc = streamSnapshot.data!.docs[index];
+                final item = Item.fromMap(doc.data() as Map<String, dynamic>, doc.id);
                 return Card(
                   margin: const EdgeInsets.all(10),
                   child: ListTile(
-                    title: Text(documentSnapshot['name']),
-                    subtitle: Text(documentSnapshot['price'].toString()),
+                    title: Text(item.name),
+                    subtitle: Text(item.price.toString()),
                     trailing: SizedBox(
                       width: 100,
                       child: Row(
                         children: [
                           IconButton(
                             icon: const Icon(Icons.edit),
-                            onPressed: () => _createOrUpdate(documentSnapshot),
+                            onPressed: () => _createOrUpdate(doc),
                           ),
                           IconButton(
                             icon: const Icon(Icons.delete),
-                            onPressed: () => _deleteProduct(documentSnapshot.id),
+                            onPressed: () => _deleteProduct(doc.id),
                           ),
                         ],
                       ),
