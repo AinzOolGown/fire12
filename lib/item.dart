@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 class Item {
-  final int id;
+  final String id;
   final String name;
   final double price;
 
@@ -23,7 +23,7 @@ class Item {
   // fromMap() Creates an Item object from a Map
   factory Item.fromMap(Map<String, dynamic> map) {
     return Item(
-      id: map['id']?.toInt() ?? 0,
+      id: map['id']?.toString() ?? '',
       name: map['name'] ?? '',
       price: map['price']?.toDouble() ?? 0.0,
     );
