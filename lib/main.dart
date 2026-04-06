@@ -36,9 +36,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
-
-  final CollectionReference _products =
-      FirebaseFirestore.instance.collection('products');
+  final CollectionReference _products = FirebaseFirestore.instance.collection('products');
 
   Future<void> _createOrUpdate([DocumentSnapshot? documentSnapshot]) async {
     String action = 'create';
@@ -96,7 +94,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // TODO: Complete this function!
   Future<void> _deleteProduct(String productId) async {
     await FirestoreManager().deleteItem(productId);
     
@@ -107,45 +104,57 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final docs = _products.snapshots();
-
     return Scaffold(
       appBar: AppBar(title: const Text('CRUD Operations')),
-      body: StreamBuilder(
+      body: StreamBuilder<QuerySnapshot>(
         stream: _products.snapshots(),
-        builder: (context, AsyncSnapshot<QuerySnapshot> streamSnapshot) {
-          if (streamSnapshot.hasData) {
-            return ListView.builder(
-              itemCount: streamSnapshot.data!.docs.length,
-              itemBuilder: (context, index) {
-                final doc = streamSnapshot.data!.docs[index];
-                final item = Item.fromMap(doc.data() as Map<String, dynamic>, doc.id);
-                return Card(
-                  margin: const EdgeInsets.all(10),
-                  child: ListTile(
-                    title: Text(item.name),
-                    subtitle: Text(item.price.toString()),
-                    trailing: SizedBox(
-                      width: 100,
-                      child: Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit),
-                            onPressed: () => _createOrUpdate(doc),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () => _deleteProduct(doc.id),
-                          ),
-                        ],
-                      ),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return const Center(child: Text("Something went wrong"));
+          }
+
+          final docs = snapshot.data!.docs;
+
+          final items = docs.map((doc) {
+            return Item.fromMap(
+              doc.data() as Map<String, dynamic>,
+              doc.id,
+            );
+          }).toList();
+
+          return ListView.builder(
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final item = items[index];
+
+              return Card(
+                margin: const EdgeInsets.all(10),
+                child: ListTile(
+                  title: Text(item.name),
+                  subtitle: Text(item.price.toString()),
+                  trailing: SizedBox(
+                    width: 100,
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit),
+                          onPressed: () => _createOrUpdate(docs[index]),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () => _deleteProduct(item.id),
+                        ),
+                      ],
                     ),
                   ),
-                );
-              },
-            );
-          }
-          return const Center(child: CircularProgressIndicator());
+                ),
+              );
+            },
+          );
         },
       ),
       floatingActionButton: FloatingActionButton(

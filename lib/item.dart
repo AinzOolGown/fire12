@@ -30,5 +30,8 @@ class Item {
   }
 
   String toJson() => json.encode(toMap());
-  factory Item.fromJson(String source) => Item.fromMap(json.decode(source));
+  factory Item.fromJson(String source) {
+    final map = json.decode(source) as Map<String, dynamic>;
+    return Item.fromMap(map, map['id']?.toString() ?? '');
+  }
 }
